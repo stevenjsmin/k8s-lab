@@ -8,12 +8,6 @@ done
 sleep 10
 
 aws ec2 describe-instances \
-  --filters "Name=instance-state-name,Values=running,pending" \
-  --query 'Reservations[].Instances[?contains(Tags[?Key==`Name`].Value | [0], `k8s`)].[Tags[?Key==`Name`].Value | [0], PublicIpAddress]' \
+  --filters "Name=tag:Name,Values=*k8s*" "Name=instance-state-name,Values=running,pending" \
+  --query 'Reservations[].Instances[].{Name: Tags[?Key==`Name`]|[0].Value, PublicIP: PublicIpAddress}' \
   --output table
-
-
-# AWS CLI에서 PublicIP와 Name을 탭으로 구분해 출력
-instances=$(aws ec2 describe-instances \
-  --query 'Reservations[].Instances[].[PublicIpAddress, Tags[?Key==`Name`].Value|[0]]' \
-  --output text)
