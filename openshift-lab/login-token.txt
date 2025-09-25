@@ -1,6 +1,15 @@
 
+
+
+LOCAL
+---------------
 Developer
 oc login --token=sha256~v8V-YwwIVumAKd6kHxx-NVtBvsJaTmkHHPtaFCoFwhE --server=https://api.crc.testing:6443
 
 Administrator
 oc login --token=sha256~wZBYYJEuIu5EXiZpNapT307n9IiaXEgyxjfj6uLK0Ec --server=https://api.crc.testing:6443
+
+
+RedHat Sandbox
+---------------
+
