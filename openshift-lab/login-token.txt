@@ -12,4 +12,7 @@ oc login --token=sha256~wZBYYJEuIu5EXiZpNapT307n9IiaXEgyxjfj6uLK0Ec --server=htt
 
 RedHat Sandbox
 ---------------
+steven-jsmin
+oc login --token=sha256~GGJin6gbo78Vm8QDZPCRI0PV4C3CyUrgK0oyFBiSqhc --server=https://api.rm3.7wse.p1.openshiftapps.com:6443
+
 
