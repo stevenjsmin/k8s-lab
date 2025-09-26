@@ -1,0 +1,90 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  creationTimestamp: "2025-09-24T02:53:57Z"
+  generation: 2
+  labels:
+    app: demo-app
+    app.kubernetes.io/component: demo-app
+    app.kubernetes.io/instance: demo-app
+  name: demo-app
+  namespace: steven-jsmin-dev
+  resourceVersion: "5211512833"
+  uid: 969fafac-1c25-4a1c-9780-fe8b057d1edd
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    deploymentconfig: demo-app
+  strategy:
+    activeDeadlineSeconds: 21600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+      creationTimestamp: null
+      labels:
+        deploymentconfig: demo-app
+    spec:
+      containers:
+      - image: image-registry.openshift-image-registry.svc:5000/steven-jsmin-dev/demo-app@sha256:b1c74b462eac457ddcbc25e56501c82207ab24780215382732348d1f777ff198
+        imagePullPolicy: Always
+        name: demo-app
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+  test: false
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - demo-app
+      from:
+        kind: ImageStreamTag
+        name: demo-app:latest
+        namespace: steven-jsmin-dev
+      lastTriggeredImage: image-registry.openshift-image-registry.svc:5000/steven-jsmin-dev/demo-app@sha256:b1c74b462eac457ddcbc25e56501c82207ab24780215382732348d1f777ff198
+    type: ImageChange
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2025-09-24T02:54:01Z"
+    lastUpdateTime: "2025-09-24T02:54:01Z"
+    message: Deployment config has minimum availability.
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2025-09-24T02:54:03Z"
+    lastUpdateTime: "2025-09-24T02:54:03Z"
+    message: replication controller "demo-app-1" successfully rolled out
+    reason: NewReplicationControllerAvailable
+    status: "True"
+    type: Progressing
+  details:
+    causes:
+    - type: ConfigChange
+    message: config change
+  latestVersion: 1
+  observedGeneration: 2
+  readyReplicas: 1
+  replicas: 1
+  unavailableReplicas: 0
+  updatedReplicas: 1

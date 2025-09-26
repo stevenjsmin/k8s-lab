@@ -1,0 +1,36 @@
+apiVersion: v1
+items:
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    creationTimestamp: "2025-09-24T05:30:50Z"
+    labels:
+      app: hello-world-pod
+    name: hello-world-pod
+    namespace: steven-jsmin-dev
+    resourceVersion: "5215487027"
+    uid: 8ea8a4d2-2f83-4905-88d3-d31e0c1e7a65
+  spec:
+    host: hello-world-pod-steven-jsmin-dev.apps.rm3.7wse.p1.openshiftapps.com
+    port:
+      targetPort: 8080
+    to:
+      kind: Service
+      name: hello-world-pod
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress:
+    - conditions:
+      - lastTransitionTime: "2025-09-24T05:30:50Z"
+        status: "True"
+        type: Admitted
+      host: hello-world-pod-steven-jsmin-dev.apps.rm3.7wse.p1.openshiftapps.com
+      routerCanonicalHostname: router-default.apps.rm3.7wse.p1.openshiftapps.com
+      routerName: default
+      wildcardPolicy: None
+kind: List
+metadata:
+  resourceVersion: ""
