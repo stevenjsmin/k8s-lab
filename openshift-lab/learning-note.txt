@@ -4,7 +4,7 @@ This is the Labs repository for the Practical OpenShift for Developers course.
 oc new-app quay.io/practicalopenshift/hello-world --as-deployment-config
 oc new-app quay.io/practicalopenshift/hello-world --name demo-app --as-deployment-config
 
-oc new-app https://github.com/stevenjsmin/openshift-lab.git --name demo-app --as-deployment-config
+oc new-app https://github.com/stevenjsmin/openshift-hello-world.git --name stevenlab-app1 --as-deployment-config
 
 oc new-app trialqdcy13.jfrog.io/stevenlab-docker-local/hello:0.1 --as-deployment-config
 
@@ -88,6 +88,11 @@ oc set env dc/hello-world --from cm/message-map
 #   따라서, kubeadmin 사용자로 실행해야한다.
 oc adm policy add-role-to-user edit developer -n stevenlab-project
 oc adm policy add-role-to-user admin developer -n stevenlab-project
+
+
+oc create configmap message-map --from-literal MESSAGE="Hello from CofigMap"
+
+
 
 
 
