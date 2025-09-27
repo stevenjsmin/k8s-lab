@@ -53,7 +53,7 @@ while IFS=$'\t' read -r ip name; do
   [[ -z "${ip:-}" || -z "${name:-}" ]] && continue
 
   case "$name" in
-    k8s-controlPlane|k8s-workNode1|k8s-workNode2|k8s-client|lab1|OpenShift-local)
+    k8s-controlPlane|k8s-workNode1|k8s-workNode2|k8s-client|lab1|OpenShift-local|Jenkins-master)
       update_host "$name" "$ip"
       ;;
     *) : ;;  # 그 외 이름은 무시
