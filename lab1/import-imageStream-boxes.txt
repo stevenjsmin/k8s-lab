@@ -1,0 +1,44 @@
+stevenmin ~/Workspaces/00/k8s-lab/lab1   main ± oc import-image boxes:latest --from=docker.io/stevenmin/boxes:latest --confirm
+imagestream.image.openshift.io/boxes imported
+
+Name:                   boxes
+Namespace:              stevenlab-project
+Created:                36 hours ago
+Labels:                 <none>
+Annotations:            openshift.io/image.dockerRepositoryCheck=2025-09-25T22:53:00Z
+Image Repository:       default-route-openshift-image-registry.apps-crc.testing/stevenlab-project/boxes
+Image Lookup:           local=false
+Unique Images:          1
+Tags:                   1
+
+latest
+  tagged from docker.io/stevenmin/boxes:latest
+
+  * docker.io/stevenmin/boxes@sha256:d2eec7b1b6146384a68316902460c7c729f66d2a9e7637f7f3f82ede4e6452a7
+      36 hours ago
+
+Image Name:     boxes:latest
+Docker Image:   docker.io/stevenmin/boxes@sha256:d2eec7b1b6146384a68316902460c7c729f66d2a9e7637f7f3f82ede4e6452a7
+Name:           sha256:d2eec7b1b6146384a68316902460c7c729f66d2a9e7637f7f3f82ede4e6452a7
+Created:        36 hours ago
+Annotations:    image.openshift.io/dockerLayersOrder=ascending
+Image Size:     69.35MB in 5 layers
+Layers:         22.71MB sha256:064a9bb4736de1b2446f528e4eb37335378392cf9b95043d3e9970e253861702
+                24.36MB sha256:60728557fac773717f63849a9885b128e8a65ee9e307f324435953e56fee7db3
+                22.28MB sha256:923f38524547c15a933407256920d61c3b1ce0c9ea89bcdddca413c7a9eb3c1f
+                252B    sha256:f6860e9a8f283603c6c01531d7eaa498c5ae51eda1b6d2a2b63cc965e1c54c3f
+                249B    sha256:fde76557b9df22879c53c3ddf7d4b9277e4f97f62a862ce3ae953accd2414ea3
+Image Created:  27 minutes ago
+Author:         <none>
+Arch:           arm64
+Command:        sh -c /bin/genid.sh >> /proc/1/fd/1 2>&1 & exec nginx -g 'daemon off;'
+Working Dir:    <none>
+User:           <none>
+Exposes Ports:  80/tcp
+Docker Labels:  org.opencontainers.image.ref.name=ubuntu
+                org.opencontainers.image.version=18.04
+Environment:    PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+                DEBIAN_FRONTEND=noninteractive
+                INTERVAL=5
+                OPTION=stone
+

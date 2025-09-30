@@ -1,0 +1,267 @@
+This is the Labs repository for the Practical OpenShift for Developers course.
+
+## new-app 명령어는 S2I(Source-to-Image) 빌드 후 ImageStream, BuildConfig, Deployment, Service를 자동 생성
+oc new-app quay.io/practicalopenshift/hello-world --as-deployment-config
+oc new-app quay.io/practicalopenshift/hello-world --name demo-app --as-deployment-config
+
+oc new-app https://github.com/stevenjsmin/openshift-hello-world-go.git --name stevenlab-app1 --as-deployment-config
+
+oc new-app trialqdcy13.jfrog.io/stevenlab-docker-local/hello:0.1 --as-deployment-config
+
+oc delete all -l app=hello-world
+
+# BuildConfig 이름이 demo-app 인 빌드(Build) 작업의 로그를 실시간으로 따라가면서(follow) 출력하라는 뜻입니다.
+#   -f는 follow 옵션. 로그를 tail 모드로 계속 이어서 표시 (리눅스 tail -f와 동일)
+oc logs -f bc/demo-app
+
+oc describe dc/demo-app
+oc logs dc/demo-app
+
+oc get dc/demo-app -o yaml
+
+kubectl get replicationcontrollers
+oc get replicationcontrollers
+oc get rc
+
+
+oc rollout latest dc/demo-app
+
+oc explain svc
+
+oc explain service.spec
+
+# 내부 Pod/Service를 클러스터 내부뿐 아니라 다른 리소스나 외부에서 접근할 수 있게 “공개”하는 작업을 합니다.
+oc expose pod/hello-world-pod
+   --> error: couldn't find port via --port flag or introspection
+
+oc expose --port 8080 pod/hello-world-pod
+
+# 이 서비스에서 제공되는 IP는 K8s 클러스터 내에서 제공되는 IP이므로 테스트를 위해서는 동일한 클러스터내의 다른 Pod에서 접근해야만 아래 테스트를 진행할수있다.
+wget -qO- 172.30.37.211:808
+
+# 아래는 K8s내부 클러스터IP에서 서비스되고있는 service/hello-world-pod를 K8s 외부에서 접근이 가능하도록 노출해주는 명령이다. 즉 Rout를 생성해준다.
+# 즉, 외부에서 서비스로 접근할수 있도록 DNS를 설정해준다.
+oc expose service/hello-world-pod
+
+
+# 현재 로그인한 클러스터의 API 서버 URL이 표시됩니다.
+oc whoami
+
+oc create user stevenlab-admin
+oc create user stevenlab-developer
+
+# stevenlab-admin사용자 비밀번호 설정(여기서는 마지막 인자가 비밀번호(pwd))
+htpasswd -b -c passwordfile stevenlab-admin pwd
+htpasswd -b -c passwordfile stevenlab-developer pwd
+
+# project-admin 사용자에게 admin 역할을 추가하는 동작을 합니다.
+oc policy add-role-to-user admin stevenlab-admin
+oc policy add-role-to-user admin stevenlab-developer
+
+
+#### 아래는 사용자 비밀번호를 변경하는 과정이다.~~~~
+# 'developer'사용자의 새 해시를 만든다.
+htpasswd -n developer
+    New password:
+    Re-type new password:
+    developer:******
+
+
+# 기존의 htpass-secret를 받는다.
+oc get secret htpass-secret -n openshift-config -o yaml > htpasswd-secret.yaml
+
+# 위에서 생성한 해쉬값을 base64로 인코딩한다.
+echo 'developer:*******' | base64 -w0
+  >> ******
+
+# 위에서 생성한 base64로 인코딩값을 htpasswd-secret.yaml 파일의 data.htpasswd에 넣는다.
+
+# 비빌번호 변경
+oc apply -f htpasswd-secret.yaml
+
+
+oc set env dc/hello-world --from cm/message-map
+
+
+
+# 아래 명령어는 developer사용자에게 stevenlab-project 프로젝트에 권한을 주는 명령이다.
+#   따라서, kubeadmin 사용자로 실행해야한다.
+oc adm policy add-role-to-user edit developer -n stevenlab-project
+oc adm policy add-role-to-user admin developer -n stevenlab-project
+
+# ConfigMap 생성 - Command Line
+oc create configmap message-map --from-literal MESSAGE="Hello from CofigMap"
+oc get configMaps message-map
+oc get cm message-map
+oc get cm/message-map -o yaml
+
+# ConfigMap 생성 - File
+echo "Hello from configMap file" > MESSAGE.txt
+echo "Hello from configMap file 1" > MESSAGE1.txt
+oc create configmap file1-map --from-file=MESSAGE1.txt
+
+# 아래명령은 키가 파일이름으로 기본적으로 만들어지는데, 위의 경우 POD에서의 ENV는 MESSAGE이고 파일 이름은 MESSAGE1.txt이기때문에 매치되는것이 맞지않아서 적용되지 않는다.
+oc set env dc/stevenlab-app1 --from configMap/file1-map
+
+# 파일명과 키를 일치 시키면서 ConfigMap생성
+oc create configmap file1-map --from-file=MESSAGE=MESSAGE1.txt
+
+
+# ConfigMap을 테스하기위한 절차
+1. oc new-app https://github.com/stevenjsmin/openshift-hello-world-go.git --name stevenlab-app1 --as-deployment-config
+2. oc set env dc/stevenlab-app1 --from configMap/message-map
+
+
+# 아래는 적용된것을 취소하는 명령어인데 잘 적용이 안되는것 같다.
+oc set env dc/stevenlab-app1 --from=configmap/message-map --remove
+oc set env dc/stevenlab-app1 --unset MESSAGE
+oc set env deployment/stevenlab-app1 --unset MESSAGE
+
+
+# Secreat 생성
+oc create secret generic message-secret --from-literal MESSAGE="IT'S SECRET MESSAGE"
+oc get secrets
+oc get secrets message-secret
+oc get secrets message-secret -o yaml
+
+oc set env dc/stevenlab-app1 --from secret/message-secret
+
+
+
+
+stevenmin ~/Workspaces/00/k8s-lab/lab1   main ± oc new-app https://github.com/stevenjsmin/openshift-hello-world-go.git --name stevenlab-app1 --as-deployment-config
+--> Found container image c7ab272 (2 years old) from quay.io for "quay.io/projectquay/golang:1.17"
+
+    Red Hat Universal Base Image 8
+    ------------------------------
+    The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.
+
+    Tags: base rhel8
+
+    * An image stream tag will be created as "golang:1.17" that will track the source image
+    * A Docker build using source code from https://github.com/stevenjsmin/openshift-hello-world-go.git will be created
+      * The resulting image will be pushed to image stream tag "stevenlab-app1:latest"
+      * Every time "golang:1.17" changes a new build will be triggered
+    * This image will be deployed in deployment config "stevenlab-app1"
+    * Port 8080/tcp will be load balanced by service "stevenlab-app1"
+      * Other containers can access this service through the hostname "stevenlab-app1"
+    * WARNING: Image "quay.io/projectquay/golang:1.17" runs as the 'root' user which may not be permitted by your cluster administrator
+
+--> Creating resources ...
+    buildconfig.build.openshift.io "stevenlab-app1" created
+Warning: apps.openshift.io/v1 DeploymentConfig is deprecated in v4.14+, unavailable in v4.10000+
+    deploymentconfig.apps.openshift.io "stevenlab-app1" created
+    service "stevenlab-app1" created
+--> Success
+    Build scheduled, use 'oc logs -f buildconfig/stevenlab-app1' to track its progress.
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose service/stevenlab-app1'
+    Run 'oc status' to view your app.
+
+
+
+oc get is
+oc get imagestreamtag
+oc get istag
+
+
+# 아래는 boxes이라는 ImageStream을 생성하고,
+#     다음 명령에서  "docker.io/stevenmin/boxes:latest"으로부터 생성된 ImageStream에 "latest" 태그를 부여한다.(boxes:latest )
+#     또한 실제 이미지는 OpenShift 내부 레지스트리에도 캐싱된다.
+oc create imagestream boxes
+oc import-image boxes:latest --from=docker.io/stevenmin/boxes:latest --confirm
+
+oc describe istag/boxes:latest
+
+## 이전에 아래와 같은 형태로 어플리케이션을 생성했다.
+oc new-app https://github.com/stevenjsmin/openshift-hello-world-go.git --name stevenlab-app1 --as-deployment-config
+oc new-app quay.io/practicalopenshift/hello-world --name demo-app --as-deployment-config
+
+# 아래는 이미 생성된 ImageStream을 이용해서 어플리케이션을 생성한다.
+oc new-app stevenlab-project/boxes --name stevenlab-boxes --as-deployment-config
+
+oc new-app stevenlab-project/stevenlab-app1 --name stevenlab-app2 --as-deployment-config
+oc expose service/stevenlab-app2
+
+
+### OpenShift에서는 ImageStream에 하나이상의 태그를 부여할수있다.
+oc tag <original> <destination>
+oc tag docker.io/stevenmin/boxes:latest boxes:prod
+
+oc get is
+
+
+
+
+########################################################################################
+#######  SETUP PRIVATE IMAGE REGISTRY                                    ###############
+########################################################################################
+
+
+docker build -t quay.io/$REGISTRY_USERNAME/private-repo .
+
+-- Dockerfile
+FROM quay.io/proacticalopenshift/hello-world
+ENV MESSAGE="Hello from private image registry"
+
+
+
+docker build -t docker.io/stevenmin/hello-world .
+
+
+
+
+docker build -t trialqdcy13.jfrog.io/stevenlab-docker-local/hello-world:1.0 .
+docker push trialqdcy13.jfrog.io/stevenlab-docker-local/hello-world:1.0
+
+
+oc create imagestream boxes-jfrog
+oc import-image boxes-jfrog --from=trialqdcy13.jfrog.io/stevenlab-docker-local/boxes:1.0 --confirm
+
+
+
+oc new-app quay.io/$REGISTRY_USERNAME/private-repo --as-deployment-config
+
+
+
+oc new-app https://github.com/stevenjsmin/openshift-hello-world-go.git --name stevenlab-app1 --as-deployment-config
+
+oc new-app trialqdcy13.jfrog.io/stevenlab-docker-local/boxes:1.0 --name stevenlab-app1 --as-deployment-config
+
+
+
+########################################################################################
+#######  BUILD                                                           ###############
+########################################################################################
+
+oc new-build https://github.com/stevenjsmin/openshift-hello-world-go.git
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

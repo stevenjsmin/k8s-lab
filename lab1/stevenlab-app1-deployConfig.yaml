@@ -1,0 +1,101 @@
+apiVersion: v1
+items:
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: "2025-09-25T16:33:58Z"
+    generation: 10
+    labels:
+      app: stevenlab-app1
+      app.kubernetes.io/component: stevenlab-app1
+      app.kubernetes.io/instance: stevenlab-app1
+    name: stevenlab-app1
+    namespace: stevenlab-project
+    resourceVersion: "120384"
+    uid: b9e843e1-2911-4bff-ad71-f108e1e60c4f
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      deploymentconfig: stevenlab-app1
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          deploymentconfig: stevenlab-app1
+      spec:
+        containers:
+        - env:
+          - name: MESSAGE
+            valueFrom:
+              secretKeyRef:
+                key: MESSAGE
+                name: message-secret
+          image: image-registry.openshift-image-registry.svc:5000/stevenlab-project/stevenlab-app1@sha256:f4db11d29f6761a75f587ce887d2078b33e040e2b0fe9780549bf2384a6ce108
+          imagePullPolicy: Always
+          name: stevenlab-app1
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - stevenlab-app1
+        from:
+          kind: ImageStreamTag
+          name: stevenlab-app1:latest
+          namespace: stevenlab-project
+        lastTriggeredImage: image-registry.openshift-image-registry.svc:5000/stevenlab-project/stevenlab-app1@sha256:f4db11d29f6761a75f587ce887d2078b33e040e2b0fe9780549bf2384a6ce108
+      type: ImageChange
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2025-09-25T18:47:18Z"
+      lastUpdateTime: "2025-09-25T18:47:22Z"
+      message: replication controller "stevenlab-app1-7" successfully rolled out
+      reason: NewReplicationControllerAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2025-09-25T18:47:55Z"
+      lastUpdateTime: "2025-09-25T18:47:55Z"
+      message: Deployment config has minimum availability.
+      status: "True"
+      type: Available
+    details:
+      causes:
+      - type: ConfigChange
+      message: config change
+    latestVersion: 7
+    observedGeneration: 10
+    readyReplicas: 1
+    replicas: 1
+    unavailableReplicas: 0
+    updatedReplicas: 1
+kind: List
+metadata:
+  resourceVersion: ""

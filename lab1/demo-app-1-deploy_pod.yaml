@@ -1,0 +1,176 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    k8s.ovn.org/pod-networks: '{"default":{"ip_addresses":["10.128.2.41/23"],"mac_address":"0a:58:0a:80:02:29","gateway_ips":["10.128.2.1"],"routes":[{"dest":"10.128.0.0/14","nextHop":"10.128.2.1"},{"dest":"172.30.0.0/16","nextHop":"10.128.2.1"},{"dest":"169.254.0.5/32","nextHop":"10.128.2.1"},{"dest":"100.64.0.0/16","nextHop":"10.128.2.1"}],"ip_address":"10.128.2.41/23","gateway_ip":"10.128.2.1","role":"primary"}}'
+    k8s.v1.cni.cncf.io/network-status: |-
+      [{
+          "name": "ovn-kubernetes",
+          "interface": "eth0",
+          "ips": [
+              "10.128.2.41"
+          ],
+          "mac": "0a:58:0a:80:02:29",
+          "default": true,
+          "dns": {}
+      }]
+    kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for container
+      deployment; cpu, memory limit for container deployment'
+    openshift.io/deployment-config.name: demo-app
+    openshift.io/deployment.name: demo-app-1
+    openshift.io/scc: restricted-v2
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+  creationTimestamp: "2025-09-24T02:53:58Z"
+  labels:
+    openshift.io/deployer-pod-for.name: demo-app-1
+  name: demo-app-1-deploy
+  namespace: steven-jsmin-dev
+  ownerReferences:
+  - apiVersion: v1
+    kind: ReplicationController
+    name: demo-app-1
+    uid: dfd1dc2f-da71-4810-b2cf-0ec72be25aff
+  resourceVersion: "5211512819"
+  uid: 56fadee8-c208-42a2-b18f-e3e0a66c319d
+spec:
+  activeDeadlineSeconds: 21600
+  containers:
+  - env:
+    - name: OPENSHIFT_DEPLOYMENT_NAME
+      value: demo-app-1
+    - name: OPENSHIFT_DEPLOYMENT_NAMESPACE
+      value: steven-jsmin-dev
+    image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:b712911513213e4107239a1a06cef4c9a382a5033e1359096cad7cdc2798a7e2
+    imagePullPolicy: IfNotPresent
+    name: deployment
+    resources:
+      limits:
+        cpu: "1"
+        memory: 1000Mi
+      requests:
+        cpu: 10m
+        memory: 64Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      runAsNonRoot: true
+      runAsUser: 1002760000
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: FallbackToLogsOnError
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-wnhrf
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  imagePullSecrets:
+  - name: deployer-dockercfg-qgwh6
+  nodeName: ip-10-0-68-140.ec2.internal
+  preemptionPolicy: PreemptLowerPriority
+  priority: -3
+  priorityClassName: sandbox-users-pods
+  restartPolicy: Never
+  schedulerName: default-scheduler
+  securityContext:
+    fsGroup: 1002760000
+    seLinuxOptions:
+      level: s0:c53,c2
+    seccompProfile:
+      type: RuntimeDefault
+  serviceAccount: deployer
+  serviceAccountName: deployer
+  shareProcessNamespace: false
+  terminationGracePeriodSeconds: 10
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoSchedule
+    key: node.kubernetes.io/memory-pressure
+    operator: Exists
+  volumes:
+  - name: kube-api-access-wnhrf
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+      - configMap:
+          items:
+          - key: service-ca.crt
+            path: service-ca.crt
+          name: openshift-service-ca.crt
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2025-09-24T02:54:03Z"
+    status: "False"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2025-09-24T02:53:58Z"
+    reason: PodCompleted
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2025-09-24T02:54:01Z"
+    reason: PodCompleted
+    status: "False"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2025-09-24T02:54:01Z"
+    reason: PodCompleted
+    status: "False"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2025-09-24T02:53:58Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: cri-o://ba14d0a4761c8e3467800081a5aa66f899545b6a31bdc4841a7490b9e6940d4f
+    image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:b712911513213e4107239a1a06cef4c9a382a5033e1359096cad7cdc2798a7e2
+    imageID: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:b712911513213e4107239a1a06cef4c9a382a5033e1359096cad7cdc2798a7e2
+    lastState: {}
+    name: deployment
+    ready: false
+    restartCount: 0
+    started: false
+    state:
+      terminated:
+        containerID: cri-o://ba14d0a4761c8e3467800081a5aa66f899545b6a31bdc4841a7490b9e6940d4f
+        exitCode: 0
+        finishedAt: "2025-09-24T02:54:01Z"
+        reason: Completed
+        startedAt: "2025-09-24T02:53:59Z"
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-wnhrf
+      readOnly: true
+      recursiveReadOnly: Disabled
+  hostIP: 10.0.68.140
+  hostIPs:
+  - ip: 10.0.68.140
+  phase: Succeeded
+  podIP: 10.128.2.41
+  podIPs:
+  - ip: 10.128.2.41
+  qosClass: Burstable
+  startTime: "2025-09-24T02:53:58Z"
