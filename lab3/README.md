@@ -1,6 +1,6 @@
 
-# Lab3
-This provides an example of creating two different apps on OpenShift.
+# Lab3 -Creating two different apps on OpenShift.
+
 
 -----
 # lab3 - Create simple Java Springboot application on OpenShift
