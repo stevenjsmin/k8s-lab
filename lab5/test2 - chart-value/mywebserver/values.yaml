@@ -1,0 +1,10 @@
+replicaCount: 2
+metadata:
+  namespace: stevenlab
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "1.25.2"
+  pullSecret:
+service:
+  type: NodePort
