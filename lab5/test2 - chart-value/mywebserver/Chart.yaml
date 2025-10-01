@@ -1,4 +1,4 @@
-apiVersion: v2
+iapiVersion: v2
 name: mynginx
 description: A Helm chart for my Nginx
 
