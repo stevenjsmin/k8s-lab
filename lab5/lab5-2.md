@@ -1,163 +1,110 @@
 
-# Helm test
+# Helm lab 5-2
 
 
 -----
-### Check install and commands
-```angular2html
-    helm version
-    helm --help
-    helm repo list
 
-    helm repo add bitnami https://charts.bitnami.com/bitnami
-
-    helm repo remove bitnami
-
-
-    helm search repo jenkins
-        NAME           	CHART VERSION	APP VERSION	DESCRIPTION
-        bitnami/jenkins	13.6.17      	2.516.2    	Jenkins is an open source Continuous Integratio...
-
-```
-
-#### 어떤기준으로 디플로이되는지,Replica 갯수, Service, Persistance Volumn..체크
+### Install Tomcat
 ```shell
-    helm inspect values bitnami/jenkins
-    helm inspect values bitnami/jenkins > jenkins_values.yaml
+  helm install tomcat bitnami/tomcat -n stevenlab
+  
+        NAME: tomcat
+        LAST DEPLOYED: Tue Sep 30 08:31:26 2025
+        NAMESPACE: stevenlab
+        STATUS: deployed
+        REVISION: 1
+        TEST SUITE: None
+        NOTES:
+        CHART NAME: tomcat
+        CHART VERSION: 12.0.8
+        APP VERSION: 11.0.10
+        
+        ⚠ WARNING: Since August 28th, 2025, only a limited subset of images/charts are available for free.
+            Subscribe to Bitnami Secure Images to receive continued support and security updates.
+            More info at https://bitnami.com and https://github.com/bitnami/containers/issues/83267
+        
+        ** Please be patient while the chart is being deployed **
+        
+        1. Get the Tomcat URL by running:
+        
+          NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+                Watch the status with: 'kubectl get svc --namespace stevenlab -w tomcat'
+        
+          export SERVICE_IP=$(kubectl get svc --namespace stevenlab tomcat --template "{{ range (index .status.loadBalancer.ingress 0) }}{{ . }}{{ end }}")
+          echo "Tomcat URL:            http://$SERVICE_IP/"
+          echo "Tomcat Management URL: http://$SERVICE_IP/manager"
+        
+        2. Login with the following credentials
+        
+          echo Username: user
+          echo Password: $(kubectl get secret --namespace stevenlab tomcat -o jsonpath="{.data.tomcat-password}" | base64 -d)
+        
+        WARNING: There are "resources" sections in the chart not set. Using "resourcesPreset" is not recommended for production. For production installations, please set the following values according to your workload needs:
+          - resources
+        +info https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          
 ```
 
-
+### 서비스 타입 변경 (외부 접근용)
+기본은 ClusterIP라서 클러스터 내부에서만 접근된다. 외부에서 접근하려면 NodePort 또는 LoadBalancer를 써한다.
 ```shell
-    helm install jenkins bitnami/jenkins
-    helm install jenkins --set service.type=NodePort bitnami/jenkins
+    # 다시 새로운 옵션으로 설치하고자 한다면
+    helm uninstall tomcat
+    helm install tomcat bitnami/tomcat -n stevenlab --set service.type=NodePort --set service.nodePorts.http=30080
 ```
 
-kubectl create namespace stevenlab
-kubectl config set-context --current --namespace=stevenlab
-kubectl config view
-
+-----
 #### Troubleshooting
-문제: 서비스가 되지 않아서 "ckubectl get all -n stevenlab"를 확인해보니까 Pod의 상태가 계속해서 Pending상태로 되어있음.
+POD의 상태: ImagePullBackOff
+POD의 주요 Described message: docker.io/bitnami/tomcat:11.0.10-debian-12-r4": rpc error: code = NotFound desc = failed to pull and unpack image "docker.io/bitnami/tomcat:11.0.10-debian-12-r4": failed to resolve reference "docker.io/bitnami/tomcat:11.0.10-debian-12-r4": docker.io/bitnami/tomcat:11.0.10-debian-12-r4: not found
 
-1. 왜 Pending인지 이벤트로 원인 확인
+
+"docker.io/bitnami/tomcat:11.0.10-debian-12-r4"는 실제로 도커이미지가 없어서 나는 오류로 보임.
+조금 일반적인 태그(예: 11.0.10 또는 11.0.11 / latest)로 지정해서 다시 테스트
 ```shell
-   kubectl get pods
-   kubectl describe pod jenkins-67ff8dd8d6-rcbzl   ---> pod의 상세한 상태를 보여줌. 
-   kubectl get events --sort-by=.lastTimestamp
-```
+helm upgrade tomcat oci://registry-1.docker.io/bitnami/tomcat \
+  -n stevenlab \
+  --set image.repository=docker.io/bitnami/tomcat \
+  --set image.tag=11.0.11 \        # 또는 11.0.10 / latest 등 존재하는 태그
+  --set image.pullPolicy=IfNotPresent
 
-2. PVC(스토리지) 이슈가 가장 흔함
-Describe에서 "pod has unbound immediate PersistentVolumeClaims."가 보여짐.
-Bitnami Jenkins는 기본적으로 PersistentVolumeClaim을 만듭니다.
-이것은 스토리지와 관련있는 이슈임.
 
-```shell
-  kubectl get pvc ->  스토리지 이름이 나옴
-  kubectl describe pvc [스토리지이름]
-     --> kubectl describe pvc jenkins
-          --> 기본 StorageClass가 없음 → 기본 SC를 지정하거나, Helm에 SC를 명시
-
-```
-
-3. 기본 StorageClass가 없음 → 기본 SC를 지정하거나, Helm에 SC를 명시
-하지만, SC가 없기때문에 먼저 아래를 실행 해줘야함.
-```shell
-    helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
-    helm repo update
-    helm upgrade --install aws-ebs-csi-driver aws-ebs-csi-driver/aws-ebs-csi-driver -n kube-system
-```
-
-```shell
-    # 기본 StorageClass 지정(예: gp3를 기본으로)
-    kubectl patch storageclass gp3 -p '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-    
-```
-
-4. SC를 차트에 직접 지정
-```shell
-    helm upgrade --install jenkins bitnami/jenkins  \
+    helm upgrade --install oci://registry-1.docker.io/bitnami/tomcat  \
     --set persistence.enabled=true \
     --set persistence.storageClass=gp3 \
     --set persistence.size=8Gi
 
+
+helm install tomcat ci://registry-1.docker.io/bitnamicharts/tomcat -n stevenlab --set image.tag=latest --set persistence.enabled=true --set persistence.storageClass=gp3 --set persistence.size=8Gi --set service.type=NodePort --set service.nodePorts.http=30080
+
 ```
-위와 같이하면 다시 Helm이 수정되어 적용된다.
 
-"kubectl get pvc"로 확인해보면 STORAGECLASS가 "gp3"로 바운드된것을 확인할수 있다.
 
-그래도 Pod는 Pending
 
-아래로 스토리지를 바꿔서 적용해본다.
+1. 현재 파드가 어떤 이미지/태그를 쓰는지 확인
 ```shell
-    kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
-    # 기본 StorageClass로 지정
-    kubectl annotate sc local-path storageclass.kubernetes.io/is-default-class="true" --overwrite
-    kubectl get sc
-    
-    helm upgrade --install jenkins bitnami/jenkins \
-      --set persistence.enabled=true \
-      --set persistence.size=8Gi \
-      --set persistence.storageClass=local-path
-    
-```
-
-그래도 계속 Pod 가 Pending상태로 서비스가 되지 않는다.
-
-"kubectl get pvc"를 확인해보니까 두번째로 시도한 스토리지 마운트가 실해하면서 여전히 gp3로 남아있다.
-
-#### 당장 빨리 띄워봐야 한다면 (영속성 끄기)
-아래방법은 PVC 없이 emptyDir로 떠서 Pending은 사라지지만, 데이터가 Pod 재시작 시 사라집니다.
-```shell
-  helm upgrade --install jenkins bitnami/jenkins --set persistence.enabled=false
-```
-
-export SERVICE_IP=$(kubectl get svc --namespace stevenlab jenkins --template "{{ range (index .status.loadBalancer.ingress 0) }}{{ . }}{{ end }}")
-echo "Jenkins URL: http://$SERVICE_IP/"
-
-echo Username: user
-echo Password: $(kubectl get secret --namespace stevenlab jenkins -o jsonpath="{.data.jenkins-password}" | base64 -d)
-
-아래는 LoadBalancer대신에 NodePort로 다시 적용한 명령이다.
-```shell
-    helm upgrade --install jenkins bitnami/jenkins -n stevenlab \
-      --set service.type=NodePort \
-      --set service.nodePorts.http=32080 \
-      --set service.nodePorts.https=32443
-      
-      
-1. Get the Jenkins URL by running:
-
-  export NODE_PORT=$(kubectl get --namespace stevenlab -o jsonpath="{.spec.ports[0].nodePort}" services jenkins)
-  export NODE_IP=$(kubectl get nodes --namespace stevenlab -o jsonpath="{.items[0].status.addresses[0].address}")
-  echo "Jenkins URL: http://$NODE_IP:$NODE_PORT/"
-
-2. Login with the following credentials
-
-  echo Username: user
-  echo Password: $(kubectl get secret --namespace stevenlab jenkins -o jsonpath="{.data.jenkins-password}" | base64 -d)
-        
-```
-
-#### Delete
-```shell
-    helm uninstall jenkins
-```
-
-### Helm Chart package structure
-```shell
-    helm pull bitnami/jenkins
-    tar zxvf jenkins-13.6.17.tgz
+kubectl -n stevenlab get pod tomcat-7fbfcbd4b9-ntl92 -o jsonpath='{.spec.containers[*].image}{"\n"}'
+  --> docker.io/bitnami/tomcat:11.0.10-debian-12-r4
 ```
 
 
 
+9.0.109-jre25
+
+
+helm install tomcat bitnami/tomcat -n stevenlab --set image.tag=9.0.62 --set persistence.enabled=true --set persistence.storageClass=gp3 --set persistence.size=8Gi --set service.type=NodePort --set service.nodePorts.http=30080
 
 
 
 
+---
+helm install my-tomcat bitnamtomcat --namespace stevenlab --set service.type=NodePort
+kubectl get pods,service -n stevenlab
 
+helm upgrade my-tomcat bitnami/tomcat \
+--namespace stevenlab \
+--reuse-values
 
-
-
+helm upgrade my-tomcat bitnami/tomcat --namespace stevenlab --reuse-values --set image.tag=9.0.62
 
 
