@@ -98,5 +98,22 @@ Chart만드는 과정
         stevenlab-helm    	https://trialqdcy13.jfrog.io/artifactory/api/helm/stevenlab-helm  
 ```
 
+```shell
+  # Helm 패키지로 생성한 파일을 업로드한다.
+  curl -u[USERNAME-NORMALLY YOUR EMAIL ADDR]:[JFROG TOKEN] -T mywebserver-0.1.0.tgz "https://trialqdcy13.jfrog.io/artifactory/stevenlab-helm/mywebserver-0.1.0.tgz"
+  
+  # 검색이 되는지 확인한다.
+  helm search repo mywebserver
+  
+  # 아래는 내가 생성 공유한 Helm패키지를 이용하여 Install해본다.
+  helm install mywebserver stevenlab-helm/mywebserver
+```
 
-curl -u[USERNAME-NORMALLY YOUR EMAIL ADDR]:[JFROG TOKEN] -T mywebserver-0.1.0.tgz "https://trialqdcy13.jfrog.io/artifactory/stevenlab-helm/mywebserver-0.1.0.tgz
+##### 삭제
+```shell
+  helm uninstall mynginx
+```
+
+
+
+
