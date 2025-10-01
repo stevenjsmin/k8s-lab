@@ -1,0 +1,4 @@
+cmd + r : multiple word selection
+(hold)alt + click : set multiple cursor location set
+
+select lines & shift + opt + i : set multi cursor
